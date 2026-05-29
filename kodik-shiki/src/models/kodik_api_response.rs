@@ -10,32 +10,44 @@ pub struct KodikApiResponse {
 }
 
 impl KodikApiResponse {
-    pub fn find_search_result(
+    /// Finds a result matching the given translation title or type.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no video sources are found or the title regex is invalid.
+    pub fn find_result(
         &self,
         translation_title: Option<&str>,
-        translation_type: Option<&TranslationType>,
+        translation_type: Option<TranslationType>,
     ) -> Result<&SearchResult, Error> {
         if let Some(translation_title) = translation_title {
             let title_re = Regex::new(&format!(r"(?i).*{translation_title}.*"))?;
 
             if let Some(result) = self.results.iter().find(|r| title_re.is_match(&r.translation.title)) {
-                log::info!("Found translation title '{}'", result.translation.title);
+                log::info!("found translation title '{}'", result.translation.title);
                 return Ok(result);
             }
 
             log::warn!("no video source with title '{translation_title}'");
-        } else if let Some(translation_type) = translation_type {
-            if let Some(result) = self.results.iter().find(|r| r.translation.r#type == *translation_type) {
-                log::info!("Found translation title '{}'", result.translation.title);
+        }
+
+        if let Some(translation_type) = translation_type {
+            if let Some(result) = self.results.iter().find(|r| r.translation.r#type == translation_type) {
+                log::info!("found translation title '{}'", result.translation.title);
                 return Ok(result);
             }
 
             log::warn!("no video source with type '{translation_type}'");
         }
 
-        self.results
+        let result = self
+            .results
             .first()
-            .ok_or_else(|| Error::NotFound("no video sources found".to_string()))
+            .ok_or_else(|| Error::NotFound("no video sources found".to_owned()))?;
+
+        log::info!("found first translation with title '{}'", result.translation.title);
+
+        Ok(result)
     }
 }
 

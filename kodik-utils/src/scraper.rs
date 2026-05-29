@@ -77,6 +77,10 @@ pub trait PATCH {
     where
         T: DeserializeOwned + Debug,
         J: Serialize + Sync + ?Sized;
+
+    fn patch_json_as_text<J>(&self, url: &str, json: &J) -> impl Future<Output = Result<String, Error>> + Send
+    where
+        J: Serialize + Sync + ?Sized;
 }
 
 impl POST for Client {
@@ -127,6 +131,14 @@ impl PATCH for Client {
     {
         log::info!("PATCH to {url}...");
         execute_json(self.patch(url).json(json)).await
+    }
+
+    async fn patch_json_as_text<J>(&self, url: &str, json: &J) -> Result<String, Error>
+    where
+        J: Serialize + Sync + ?Sized,
+    {
+        log::info!("PATCH to {url}...");
+        execute_text(self.patch(url).json(json)).await
     }
 }
 

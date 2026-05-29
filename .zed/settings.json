@@ -8,13 +8,7 @@
       "initialization_options": {
         "check": {
           "command": "clippy",
-          "extraArgs": [
-            "--fix",
-            "--allow-dirty",
-            "--allow-staged",
-            "--allow-no-vcs",
-            "--all-features",
-          ],
+          "extraArgs": ["--all-features"],
         },
         "cargo": {
           "features": [],

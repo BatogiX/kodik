@@ -1,4 +1,4 @@
-use crate::{Result, UserRate, models::shared::AnimeStatus};
+use crate::{AnimeKind, Result, UserRate, models::shared::AnimeStatus};
 use kodik_utils::{Client, POST as _};
 use serde::{Deserialize, Serialize};
 const LIMIT: usize = 50;
@@ -56,6 +56,7 @@ impl Related {
         status
         episodes
         episodesAired
+        kind
 
         related {
           relationKind
@@ -141,6 +142,7 @@ pub struct Anime {
     pub id: usize,
     pub name: String,
     pub status: AnimeStatus,
+    pub kind: AnimeKind,
     pub episodes: usize,
     pub episodes_aired: usize,
     pub related: Vec<Relation>,

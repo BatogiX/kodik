@@ -4,6 +4,11 @@ use tokio::sync::OnceCell;
 
 static ACHIEVEMENTS: OnceCell<Vec<Achievement>> = OnceCell::const_new();
 
+/// Fetches the list of `not_anime_ids` for a given neko achievement ID.
+///
+/// # Errors
+///
+/// Returns an error if the HTTP request fails or the YAML response cannot be parsed.
 pub async fn fetch_not_anime_ids(client: &Client, neko_id: &str) -> Result<Option<&'static [usize]>, Error> {
     const ACHIEVEMENTS_URL: &str =
         "https://raw.githubusercontent.com/shikimori/neko-achievements/refs/heads/master/priv/rules/_franchises.yml";

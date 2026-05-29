@@ -1,0 +1,22 @@
+[
+  {
+    "label": "clippy fix",
+    "command": "cargo",
+    "args": [
+      "clippy",
+      "--fix",
+      "--allow-dirty",
+      "--allow-staged",
+      "--allow-no-vcs",
+      "--all-features",
+      "--",
+      "-A",
+      "unused-variables",
+    ],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "save": "all",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+  },
+]

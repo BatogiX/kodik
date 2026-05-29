@@ -56,3 +56,34 @@ where
         StringOrNumber::String(s) => s.parse::<usize>().map_err(serde::de::Error::custom),
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AnimeKind {
+    Tv,
+    Movie,
+    Ova,
+    Ona,
+    Special,
+    TvSpecial,
+    Music,
+    Pv,
+    Cm,
+}
+
+impl AnimeKind {
+    #[must_use]
+    pub const fn to_str(self) -> &'static str {
+        match self {
+            Self::Tv => "TV Series",
+            Self::Movie => "Movie",
+            Self::Ova => "OVA",
+            Self::Ona => "ONA",
+            Self::Special => "Special",
+            Self::TvSpecial => "TV Special",
+            Self::Music => "Music",
+            Self::Pv => "PV",
+            Self::Cm => "CM",
+        }
+    }
+}

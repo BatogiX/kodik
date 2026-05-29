@@ -64,9 +64,9 @@ async fn shiki_helper(
     let kodik_api_resp = kodik_shiki::fetch_kodik_videos(client, shikimori_id).await?;
 
     let search_result = kodik_api_resp
-        .find_search_result(
+        .find_result(
             config.translation_title.as_deref(),
-            config.translation_type.map(TranslationType::from).as_ref(),
+            config.translation_type.map(TranslationType::from),
         )?
         .to_owned();
 

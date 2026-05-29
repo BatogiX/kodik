@@ -1,5 +1,10 @@
 use kodik_utils::Error;
 
+/// Extracts the anime ID from a Shikimori URL.
+///
+/// # Errors
+///
+/// Returns an error if the URL does not contain a valid anime ID.
 pub fn extract_id(url: &str) -> Result<&str, Error> {
     let id_re = lazy_regex::regex!(r"/animes?/(?:[a-z])?([0-9]+)(?:-|$|/)");
 

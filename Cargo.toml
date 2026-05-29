@@ -29,7 +29,7 @@ clap = "4.6"
 dirs = "6.0"
 thiserror = "2.0"
 anyhow = "1.0"
-mpv-client = { path = '..\mpv-client\mpv-client' }
+mpv-client = { version = "1.2", package = "mpv-client-cross" }
 futures = "0.3"
 env_logger = "0.11"
 
@@ -37,14 +37,24 @@ env_logger = "0.11"
 unsafe_code = "deny"
 
 [workspace.lints.clippy]
-expect_used = "warn"
-unwrap_used = "warn"
-panic = "warn"
-multiple_crate_versions = "allow"
 all = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 cargo = { level = "warn", priority = -1 }
+expect_used = "warn"
+unwrap_used = "warn"
+panic = "warn"
+multiple_crate_versions = "allow"
+mod_module_files = "warn"
+module_name_repetitions = "warn"
+partial_pub_fields = "warn"
+print_stderr = "warn"
+print_stdout = "warn"
+rc_buffer = "warn"
+rc_mutex = "warn"
+redundant_test_prefix = "warn"
+str_to_string = "warn"
+suspicious_xor_used_as_pow = "warn"
 
 [profile.release]
 lto = "fat"
