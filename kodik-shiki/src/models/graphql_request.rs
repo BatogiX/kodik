@@ -107,94 +107,55 @@ impl Related {
     pub fn sort_by_chrono(&mut self) {
         self.animes.reverse();
 
-        let mut current_index = 0;
-        while current_index < self.animes.len() {
-            let mut moved_here = HashSet::new();
+        self.reorder_related(true, |k| {
+            matches!(
+                k,
+                RelationKind::Prequel | RelationKind::ParentStory | RelationKind::FullStory | RelationKind::Orig
+            )
+        });
 
-            loop {
-                let prequel_index = {
-                    let current_anime = &self.animes[current_index];
+        self.reorder_related(false, |k| matches!(k, RelationKind::Sequel));
+    }
 
-                    current_anime
-                        .related
-                        .iter()
-                        .filter(|relation| {
-                            matches!(
-                                relation.relation_kind,
-                                RelationKind::Prequel
-                                    | RelationKind::ParentStory
-                                    | RelationKind::FullStory
-                                    | RelationKind::Orig
-                            )
-                        })
-                        .filter_map(|relation| {
-                            let related_anime_id = relation.anime.as_ref()?.id;
+    fn reorder_related(&mut self, pull_forward: bool, kind_pred: impl Fn(&RelationKind) -> bool) {
+        for index in 0..self.animes.len() {
+            let mut moved = HashSet::new();
 
-                            if moved_here.contains(&related_anime_id) {
-                                return None;
-                            }
+            while let Some((pos, id)) = Self::find_related(&self.animes, index, &moved, &kind_pred, |p| {
+                if pull_forward { p > index } else { p < index }
+            }) {
+                moved.insert(id);
 
-                            self.animes
-                                .iter()
-                                .position(|anime| anime.id == related_anime_id)
-                                .map(|index| (index, related_anime_id))
-                        })
-                        .find(|&(index, _)| index > current_index)
-                };
-
-                let Some((prequel_index, related_anime_id)) = prequel_index else {
-                    break;
-                };
-
-                moved_here.insert(related_anime_id);
-
-                let prequel = self.animes.remove(prequel_index);
-                self.animes.insert(current_index, prequel);
+                if pull_forward {
+                    let item = self.animes.remove(pos);
+                    self.animes.insert(index, item);
+                } else {
+                    let item = self.animes.remove(index);
+                    self.animes.insert(pos, item);
+                }
             }
-
-            current_index += 1;
         }
+    }
 
-        // Fixing sequels
-        let mut current_index = 0;
-        while current_index < self.animes.len() {
-            let mut moved_here = HashSet::new();
-
-            loop {
-                let prequel_index = {
-                    let current_anime = &self.animes[current_index];
-
-                    current_anime
-                        .related
-                        .iter()
-                        .filter(|relation| matches!(relation.relation_kind, RelationKind::Sequel))
-                        .filter_map(|relation| {
-                            let related_anime_id = relation.anime.as_ref()?.id;
-
-                            if moved_here.contains(&related_anime_id) {
-                                return None;
-                            }
-
-                            self.animes
-                                .iter()
-                                .position(|anime| anime.id == related_anime_id)
-                                .map(|index| (index, related_anime_id))
-                        })
-                        .find(|&(index, _)| current_index > index)
-                };
-
-                let Some((prequel_index, related_anime_id)) = prequel_index else {
-                    break;
-                };
-
-                moved_here.insert(related_anime_id);
-
-                let prequel = self.animes.remove(current_index);
-                self.animes.insert(prequel_index, prequel);
-            }
-
-            current_index += 1;
-        }
+    fn find_related(
+        animes: &[Anime],
+        current: usize,
+        moved: &HashSet<usize>,
+        kind_pred: impl Fn(&RelationKind) -> bool,
+        pos_pred: impl Fn(usize) -> bool,
+    ) -> Option<(usize, usize)> {
+        animes[current]
+            .related
+            .iter()
+            .filter(|r| kind_pred(&r.relation_kind))
+            .find_map(|r| {
+                let id = r.anime.as_ref()?.id;
+                if moved.contains(&id) {
+                    return None;
+                }
+                let pos = animes.iter().position(|a| a.id == id)?;
+                pos_pred(pos).then_some((pos, id))
+            })
     }
 }
 
