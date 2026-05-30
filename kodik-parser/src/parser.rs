@@ -49,15 +49,16 @@ impl Links {
 /// # Example
 /// ```no_run
 /// use kodik_parser::parse;
-/// use reqwest::Client;
+/// use kodik_utils::Client;
 ///
 /// # async fn run() {
 /// let client = Client::new();
 /// let url = "https://kodikplayer.com/some-type/some-id/some-hash/some-quality";
 /// let kodik_response = parse(&client, url).await.unwrap();
 ///
-/// let link_720 = &kodik_response.links.quality_720.first().unwrap().src;
-/// println!("Link with 720p quality is: {link_720}");
+/// println!("720p link: {}", kodik_response.p720);
+/// println!("480p link: {}", kodik_response.p480);
+/// println!("360p link: {}", kodik_response.p360);
 /// # }
 /// ```
 pub async fn parse(client: &Client, url: &str) -> Result<Links, Error> {

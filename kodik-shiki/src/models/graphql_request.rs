@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::{AnimeKind, Result, UserRate, models::shared::AnimeStatus};
 use kodik_utils::{Client, POST as _};
 use serde::{Deserialize, Serialize};
@@ -107,30 +109,91 @@ impl Related {
 
         let mut current_index = 0;
         while current_index < self.animes.len() {
-            let prequel_index = {
-                let current_anime = &self.animes[current_index];
+            let mut moved_here = HashSet::new();
 
-                current_anime
-                    .related
-                    .iter()
-                    .filter(|relation| relation.relation_kind == RelationKind::Prequel)
-                    .filter_map(|relation| {
-                        self.animes
-                            .iter()
-                            .position(|anime| anime.id == relation.anime.as_ref().unwrap().id)
-                    })
-                    .find(|&index| index > current_index)
-            };
+            loop {
+                let prequel_index = {
+                    let current_anime = &self.animes[current_index];
 
-            if let Some(prequel_index) = prequel_index {
+                    current_anime
+                        .related
+                        .iter()
+                        .filter(|relation| {
+                            matches!(
+                                relation.relation_kind,
+                                RelationKind::Prequel
+                                    | RelationKind::ParentStory
+                                    | RelationKind::FullStory
+                                    | RelationKind::Orig
+                            )
+                        })
+                        .filter_map(|relation| {
+                            let related_anime_id = relation.anime.as_ref()?.id;
+
+                            if moved_here.contains(&related_anime_id) {
+                                return None;
+                            }
+
+                            self.animes
+                                .iter()
+                                .position(|anime| anime.id == related_anime_id)
+                                .map(|index| (index, related_anime_id))
+                        })
+                        .find(|&(index, _)| index > current_index)
+                };
+
+                let Some((prequel_index, related_anime_id)) = prequel_index else {
+                    break;
+                };
+
+                moved_here.insert(related_anime_id);
+
                 let prequel = self.animes.remove(prequel_index);
                 self.animes.insert(current_index, prequel);
-
-                self.animes[current_index + 1].related.clear();
-            } else {
-                self.animes[current_index].related.clear();
-                current_index += 1;
             }
+
+            current_index += 1;
+        }
+
+        // Fixing sequels
+        let mut current_index = 0;
+        while current_index < self.animes.len() {
+            let mut moved_here = HashSet::new();
+
+            loop {
+                let prequel_index = {
+                    let current_anime = &self.animes[current_index];
+
+                    current_anime
+                        .related
+                        .iter()
+                        .filter(|relation| matches!(relation.relation_kind, RelationKind::Sequel))
+                        .filter_map(|relation| {
+                            let related_anime_id = relation.anime.as_ref()?.id;
+
+                            if moved_here.contains(&related_anime_id) {
+                                return None;
+                            }
+
+                            self.animes
+                                .iter()
+                                .position(|anime| anime.id == related_anime_id)
+                                .map(|index| (index, related_anime_id))
+                        })
+                        .find(|&(index, _)| current_index > index)
+                };
+
+                let Some((prequel_index, related_anime_id)) = prequel_index else {
+                    break;
+                };
+
+                moved_here.insert(related_anime_id);
+
+                let prequel = self.animes.remove(current_index);
+                self.animes.insert(prequel_index, prequel);
+            }
+
+            current_index += 1;
         }
     }
 }
@@ -153,7 +216,7 @@ pub struct Anime {
 #[serde(rename_all = "camelCase")]
 pub struct Relation {
     pub relation_kind: RelationKind,
-    pub anime: Option<BasicAnime>,
+    pub anime: Option<RelationAnime>,
 }
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
@@ -176,7 +239,7 @@ pub enum RelationKind {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct BasicAnime {
+pub struct RelationAnime {
     #[serde(deserialize_with = "deserialize_usize_from_string_or_number")]
     pub id: usize,
 }
