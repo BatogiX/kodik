@@ -3,6 +3,8 @@ use reqwest::header;
 use std::string;
 use thiserror::Error as ThisError;
 
+pub type Result<T, E = Error> = std::result::Result<T, E>;
+
 /// Errors from kodik.
 #[derive(ThisError, Debug)]
 #[non_exhaustive]

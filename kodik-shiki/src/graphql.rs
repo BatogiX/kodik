@@ -34,23 +34,18 @@ impl<'a> FetchAnimesVars<'a> {
 
 #[derive(Deserialize, Debug)]
 struct FetchAnimesResponse {
-    pub data: Related,
+    pub data: Franchise,
 }
 
 #[derive(Deserialize, Debug, Default)]
-pub struct Related {
+pub struct Franchise {
     pub animes: Vec<Anime>,
 }
 
-impl Related {
+impl Franchise {
     /// # Errors
     /// Returns an error if the GraphQL request fails or the response cannot be deserialized.
-    pub async fn fetch_by_franchise(
-        client: &Client,
-        franchise: &str,
-        domain: &str,
-        not_anime_ids: &[usize],
-    ) -> crate::Result<Self> {
+    pub async fn fetch(client: &Client, franchise: &str, domain: &str, not_anime_ids: &[usize]) -> crate::Result<Self> {
         const ANIMES_BY_FRANCHISE_QUERY: &str = r#"
     query($franchise: String!, $page: PositiveInt!, $limit: PositiveInt!, $excludeIds: String!) {
       animes(franchise: $franchise, page: $page, limit: $limit, excludeIds: $excludeIds, order: aired_on, status: "!anons") {
@@ -90,35 +85,35 @@ impl Related {
             variables: FetchAnimesVars::new(franchise, &exclude_ids),
         };
 
-        let mut related = Self::default();
+        let mut franchise = Self::default();
         for page in 1.. {
             json.variables.page = page;
             let mut resp: FetchAnimesResponse = client.post_json_as_json(&graphql_url, &json).await?;
             let len = resp.data.animes.len();
-            related.animes.append(&mut resp.data.animes);
+            franchise.animes.append(&mut resp.data.animes);
 
             if len < LIMIT {
                 break;
             }
         }
 
-        Ok(related)
+        Ok(franchise)
     }
 
     pub fn sort_by_chrono(&mut self) {
         self.animes.reverse();
 
-        self.reorder_related(true, |k| {
+        self.reorder_franchise(true, |k| {
             matches!(
                 k,
                 RelationKind::Prequel | RelationKind::ParentStory | RelationKind::FullStory | RelationKind::Orig
             )
         });
 
-        self.reorder_related(false, |k| matches!(k, RelationKind::Sequel));
+        self.reorder_franchise(false, |k| matches!(k, RelationKind::Sequel));
     }
 
-    fn reorder_related(&mut self, pull_forward: bool, kind_pred: impl Fn(&RelationKind) -> bool) {
+    fn reorder_franchise(&mut self, pull_forward: bool, kind_pred: impl Fn(&RelationKind) -> bool) {
         for index in 0..self.animes.len() {
             let mut moved = HashSet::new();
 
@@ -216,10 +211,6 @@ mod tests {
         let client = Client::new();
         let franchise = "berserk";
         let domain = "shikimori.io";
-        dbg!(
-            Related::fetch_by_franchise(&client, franchise, domain, &[])
-                .await
-                .unwrap()
-        );
+        dbg!(Franchise::fetch(&client, franchise, domain, &[]).await.unwrap());
     }
 }

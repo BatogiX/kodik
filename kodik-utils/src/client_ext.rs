@@ -10,8 +10,6 @@ use ua_generator::{
     ua,
 };
 
-use crate::Error;
-
 pub trait ClientExt {
     /// Posts data to the given URL and deserializes the response as JSON.
     ///
@@ -21,7 +19,7 @@ pub trait ClientExt {
     /// - A network request fails.
     /// - The response cannot be deserialized into the target type `T`.
     /// - An invalid URL is provided (though `reqwest` usually handles this during `post`).
-    fn post_form_as_json<T, F>(&self, url: &str, form: &F) -> impl Future<Output = Result<T, crate::Error>> + Send
+    fn post_form_as_json<T, F>(&self, url: &str, form: &F) -> impl Future<Output = crate::Result<T>> + Send
     where
         T: DeserializeOwned + Debug,
         F: Serialize + Sync + ?Sized;
@@ -34,7 +32,7 @@ pub trait ClientExt {
     /// - A network request fails.
     /// - The response cannot be deserialized into the target type `T`.
     /// - An invalid URL is provided (though `reqwest` usually handles this during `post`).
-    fn post_json_as_json<T, J>(&self, url: &str, json: &J) -> impl Future<Output = Result<T, Error>> + Send
+    fn post_json_as_json<T, J>(&self, url: &str, json: &J) -> impl Future<Output = crate::Result<T>> + Send
     where
         T: DeserializeOwned + Debug,
         J: Serialize + Sync + ?Sized;
@@ -46,7 +44,7 @@ pub trait ClientExt {
     /// Returns an [`Error`] if:
     /// - A network request fails.
     /// - An invalid URL is provided (though `reqwest` usually handles this during `post`).
-    fn post_json_as_text<J>(&self, url: &str, json: &J) -> impl Future<Output = Result<String, Error>> + Send
+    fn post_json_as_text<J>(&self, url: &str, json: &J) -> impl Future<Output = crate::Result<String>> + Send
     where
         J: Serialize + Sync + ?Sized;
 
@@ -58,7 +56,7 @@ pub trait ClientExt {
     /// - A network request fails.
     /// - The response body cannot be read as a string.
     /// - An invalid URL is provided (though `reqwest` usually handles this during `get`).
-    fn fetch_as_text(&self, url: &str) -> impl Future<Output = Result<String, crate::Error>> + Send;
+    fn fetch_as_text(&self, url: &str) -> impl Future<Output = crate::Result<String>> + Send;
 
     /// Fetches data from the given URL and deserializes it as JSON.
     ///
@@ -68,23 +66,20 @@ pub trait ClientExt {
     /// - A network request fails.
     /// - The response cannot be deserialized into the target type `T`.
     /// - An invalid URL is provided (though `reqwest` usually handles this during `get`).
-    fn fetch_as_json<T: DeserializeOwned + Debug>(
-        &self,
-        url: &str,
-    ) -> impl Future<Output = Result<T, crate::Error>> + Send;
+    fn fetch_as_json<T: DeserializeOwned + Debug>(&self, url: &str) -> impl Future<Output = crate::Result<T>> + Send;
 
-    fn patch_json_as_json<T, J>(&self, url: &str, json: &J) -> impl Future<Output = Result<T, Error>> + Send
+    fn patch_json_as_json<T, J>(&self, url: &str, json: &J) -> impl Future<Output = crate::Result<T>> + Send
     where
         T: DeserializeOwned + Debug,
         J: Serialize + Sync + ?Sized;
 
-    fn patch_json_as_text<J>(&self, url: &str, json: &J) -> impl Future<Output = Result<String, Error>> + Send
+    fn patch_json_as_text<J>(&self, url: &str, json: &J) -> impl Future<Output = crate::Result<String>> + Send
     where
         J: Serialize + Sync + ?Sized;
 }
 
 impl ClientExt for Client {
-    async fn post_form_as_json<T, F>(&self, url: &str, form: &F) -> Result<T, crate::Error>
+    async fn post_form_as_json<T, F>(&self, url: &str, form: &F) -> crate::Result<T>
     where
         T: DeserializeOwned + Debug,
         F: Serialize + Sync + ?Sized,
@@ -93,7 +88,7 @@ impl ClientExt for Client {
         execute_json(self.post(url).form(form)).await
     }
 
-    async fn post_json_as_json<T, J>(&self, url: &str, json: &J) -> Result<T, Error>
+    async fn post_json_as_json<T, J>(&self, url: &str, json: &J) -> crate::Result<T>
     where
         T: DeserializeOwned + Debug,
         J: Serialize + Sync + ?Sized,
@@ -102,7 +97,7 @@ impl ClientExt for Client {
         execute_json(self.post(url).json(json)).await
     }
 
-    async fn post_json_as_text<J>(&self, url: &str, json: &J) -> Result<String, Error>
+    async fn post_json_as_text<J>(&self, url: &str, json: &J) -> crate::Result<String>
     where
         J: Serialize + Sync + ?Sized,
     {
@@ -110,17 +105,17 @@ impl ClientExt for Client {
         execute_text(self.post(url).json(json)).await
     }
 
-    async fn fetch_as_text(&self, url: &str) -> Result<String, crate::Error> {
+    async fn fetch_as_text(&self, url: &str) -> crate::Result<String> {
         log::info!("GET to {url}...");
         execute_text(self.get(url)).await
     }
 
-    async fn fetch_as_json<T: DeserializeOwned + Debug>(&self, url: &str) -> Result<T, crate::Error> {
+    async fn fetch_as_json<T: DeserializeOwned + Debug>(&self, url: &str) -> crate::Result<T> {
         log::info!("GET to {url}...");
         execute_json(self.get(url)).await
     }
 
-    async fn patch_json_as_json<T, J>(&self, url: &str, json: &J) -> Result<T, Error>
+    async fn patch_json_as_json<T, J>(&self, url: &str, json: &J) -> crate::Result<T>
     where
         T: DeserializeOwned + Debug,
         J: Serialize + Sync + ?Sized,
@@ -129,7 +124,7 @@ impl ClientExt for Client {
         execute_json(self.patch(url).json(json)).await
     }
 
-    async fn patch_json_as_text<J>(&self, url: &str, json: &J) -> Result<String, Error>
+    async fn patch_json_as_text<J>(&self, url: &str, json: &J) -> crate::Result<String>
     where
         J: Serialize + Sync + ?Sized,
     {
@@ -176,7 +171,7 @@ fn build_headers() -> HeaderMap {
     headers
 }
 
-async fn execute_json<T>(builder: RequestBuilder) -> Result<T, crate::Error>
+async fn execute_json<T>(builder: RequestBuilder) -> crate::Result<T>
 where
     T: DeserializeOwned + Debug,
 {
@@ -187,14 +182,14 @@ where
     Ok(data)
 }
 
-async fn execute_text(builder: RequestBuilder) -> Result<String, crate::Error> {
+async fn execute_text(builder: RequestBuilder) -> crate::Result<String> {
     let resp = execute(builder).await?;
     let body = resp.text().await?;
     log::trace!("Response body: {body:#?}");
     Ok(body)
 }
 
-async fn execute(builder: RequestBuilder) -> Result<Response, crate::Error> {
+async fn execute(builder: RequestBuilder) -> crate::Result<Response> {
     const MAX_ATTEMPTS: u8 = 5;
 
     let headers = build_headers();

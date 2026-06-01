@@ -10,5 +10,5 @@ mod state;
 
 pub use api::{KodikApiResponse, TranslationType};
 pub use error::{Error, Result};
-pub use parser::{Links, parse};
+pub use parser::Links;
 pub use state::KODIK_STATE;

@@ -27,6 +27,7 @@ pub struct Link {
     /// Source URL of the video stream
     pub src: String,
     /// MIME type of the video content
+    #[allow(dead_code)]
     pub r#type: String,
 }
 

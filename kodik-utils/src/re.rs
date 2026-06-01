@@ -5,7 +5,7 @@ use crate::Error;
 /// # Errors
 ///
 /// Returns `KodikError::Regex` if no valid domain is found in the URL.
-pub fn extract_domain(url: &str) -> Result<&str, Error> {
+pub fn extract_domain(url: &str) -> crate::Result<&str> {
     let domain_re = lazy_regex::regex!(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]");
 
     log::debug!("Extracting domain...");
@@ -25,7 +25,7 @@ pub fn extract_domain(url: &str) -> Result<&str, Error> {
 /// # Errors
 ///
 /// Returns an error if the URL does not contain a valid anime ID.
-pub fn extract_anime_id(url: &str) -> Result<&str, Error> {
+pub fn extract_anime_id(url: &str) -> crate::Result<&str> {
     let id_re = lazy_regex::regex!(r"/animes?/(?:[a-z])?([0-9]+)(?:-|$|/)");
 
     id_re
