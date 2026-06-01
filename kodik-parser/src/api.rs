@@ -1,6 +1,10 @@
-use std::{collections::BTreeMap, fmt::Display, str::FromStr};
+use std::{
+    collections::BTreeMap,
+    fmt::{Debug, Display},
+    str::FromStr,
+};
 
-use kodik_utils::Error;
+use kodik_utils::{Client, ClientExt as _};
 use lazy_regex::Regex;
 use serde::Deserialize;
 
@@ -19,7 +23,7 @@ impl KodikApiResponse {
         &self,
         translation_title: Option<&str>,
         translation_type: Option<TranslationType>,
-    ) -> Result<&SearchResult, Error> {
+    ) -> crate::Result<&SearchResult> {
         if let Some(translation_title) = translation_title {
             let title_re = Regex::new(&format!(r"(?i).*{translation_title}.*"))?;
 
@@ -43,7 +47,7 @@ impl KodikApiResponse {
         let result = self
             .results
             .first()
-            .ok_or_else(|| Error::NotFound("no video sources found".to_owned()))?;
+            .ok_or_else(|| kodik_utils::Error::NotFound("no video sources found".to_owned()))?;
 
         log::info!("found first translation with title '{}'", result.translation.title);
 
@@ -86,7 +90,7 @@ impl Display for TranslationType {
 impl FromStr for TranslationType {
     type Err = crate::Error;
 
-    fn from_str(value: &str) -> Result<Self, crate::Error> {
+    fn from_str(value: &str) -> crate::Result<Self> {
         match value.trim() {
             "voice" => Ok(Self::Voice),
             "subtitles" => Ok(Self::Subtitles),
@@ -98,4 +102,18 @@ impl FromStr for TranslationType {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Season {
     pub episodes: BTreeMap<usize, String>,
+}
+
+async fn fetch_kodik_videos(client: &Client, query: &str) -> crate::Result<KodikApiResponse> {
+    const TOKEN: &str = env!("KODIK_TOKEN");
+
+    let url = format!("https://kodik-api.com/search?token={TOKEN}&{query}&with_seasons=true&with_episodes=true");
+    let kodik_api_response: KodikApiResponse = client.fetch_as_json(&url).await?;
+
+    Ok(kodik_api_response)
+}
+
+pub async fn fetch_shiki_kodik_videos(client: &Client, shikimori_id: usize) -> crate::Result<KodikApiResponse> {
+    let query = format!("shikimori_id={shikimori_id}");
+    fetch_kodik_videos(client, &query).await
 }

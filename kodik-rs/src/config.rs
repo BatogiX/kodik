@@ -4,12 +4,15 @@ use std::{
 };
 
 use anyhow::{Context, Result};
-use clap::{ArgAction, Parser, ValueEnum, builder::styling};
-use kodik_shiki::TranslationType;
+use clap::{
+    ArgAction, Parser, ValueEnum,
+    builder::styling::{self, Styles},
+};
+use kodik_parser::TranslationType;
 use log::LevelFilter;
 use reqwest::{Url, cookie::Jar};
 
-const STYLES: styling::Styles = styling::Styles::styled()
+const STYLES: Styles = Styles::styled()
     .header(styling::AnsiColor::BrightGreen.on_default().bold())
     .usage(styling::AnsiColor::BrightGreen.on_default().bold())
     .literal(styling::AnsiColor::BrightCyan.on_default().bold())

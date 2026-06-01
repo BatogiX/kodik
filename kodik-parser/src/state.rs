@@ -25,6 +25,7 @@ impl KodikState {
         self.shift.store(shift, Ordering::Relaxed);
     }
 
+    #[allow(clippy::rc_buffer)]
     pub fn endpoint(&self) -> Arc<String> {
         self.endpoint.load_full()
     }

@@ -13,10 +13,6 @@ mod config;
 mod logging;
 mod shiki;
 
-#[cfg(test)]
-#[allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing)]
-mod tests;
-
 pub async fn run(args: Vec<String>) -> ExitCode {
     match run_impl(args).await {
         Ok(()) => ExitCode::SUCCESS,

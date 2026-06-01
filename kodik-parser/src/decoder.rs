@@ -1,6 +1,5 @@
 use crate::{KODIK_STATE, Link, scraper::Response};
 use base64::{Engine as _, engine::general_purpose};
-use kodik_utils::Error;
 
 const MIN_SHIFT: u8 = 0;
 const MAX_SHIFT: u8 = 26;
@@ -11,7 +10,7 @@ impl Response {
     /// # Errors
     ///
     /// Returns a `KodikError` if decoding fails for any of the links.
-    pub(crate) fn decode_links(&mut self) -> Result<(), Error> {
+    pub(crate) fn decode_links(&mut self) -> crate::Result<()> {
         log::debug!("Decoding links...");
 
         for link in &mut self.links.quality_360 {
@@ -41,7 +40,7 @@ impl Response {
 }
 
 impl Link {
-    pub(crate) fn decode_src(&mut self) -> Result<(), Error> {
+    pub(crate) fn decode_src(&mut self) -> crate::Result<()> {
         let shift = KODIK_STATE.shift().clamp(MIN_SHIFT, MAX_SHIFT);
 
         if let Ok(decoded) = try_decode(&self.src, shift) {
@@ -57,11 +56,11 @@ impl Link {
             }
         }
 
-        Err(Error::LinkCannotBeDecoded(self.src.clone()))
+        Err(crate::Error::LinkCannotBeDecoded(self.src.clone()))
     }
 }
 
-pub fn try_decode(encoded: &str, shift: u8) -> Result<String, Error> {
+pub fn try_decode(encoded: &str, shift: u8) -> crate::Result<String> {
     let mut decoded_caesar = caesar_cipher(encoded, shift);
 
     while !decoded_caesar.len().is_multiple_of(4) {
@@ -100,7 +99,7 @@ pub fn caesar_cipher(text: &str, shift: u8) -> String {
 /// # Errors
 ///
 /// Returns a `KodikError` if decoding fails due to invalid base64 input or invalid UTF-8.
-pub fn decode_base64(input: &str) -> Result<String, Error> {
+pub fn decode_base64(input: &str) -> crate::Result<String> {
     let decoded_input = general_purpose::STANDARD.decode(input)?;
     Ok(String::from_utf8(decoded_input)?)
 }

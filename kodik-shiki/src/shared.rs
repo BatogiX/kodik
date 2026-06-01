@@ -21,9 +21,9 @@ pub enum AnimeStatus {
 
 #[derive(Debug, Clone, Copy, Deserialize, Serialize)]
 pub struct UserRate {
-    pub episodes: usize,
     #[serde(deserialize_with = "deserialize_usize_from_string_or_number")]
     pub id: usize,
+    pub episodes: usize,
     pub rewatches: usize,
     pub status: UserRateStatus,
 }
@@ -32,28 +32,11 @@ impl UserRate {
     #[must_use]
     pub const fn new(id: usize, status: UserRateStatus, episodes: usize, rewatches: usize) -> Self {
         Self {
-            episodes,
             id,
+            episodes,
             rewatches,
             status,
         }
-    }
-}
-
-pub fn deserialize_usize_from_string_or_number<'de, D>(deserializer: D) -> std::result::Result<usize, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    #[serde(untagged)]
-    enum StringOrNumber {
-        String(String),
-        Number(usize),
-    }
-
-    match StringOrNumber::deserialize(deserializer)? {
-        StringOrNumber::Number(n) => Ok(n),
-        StringOrNumber::String(s) => s.parse::<usize>().map_err(serde::de::Error::custom),
     }
 }
 
@@ -85,5 +68,22 @@ impl AnimeKind {
             Self::Pv => "PV",
             Self::Cm => "CM",
         }
+    }
+}
+
+pub fn deserialize_usize_from_string_or_number<'de, D>(deserializer: D) -> std::result::Result<usize, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum StringOrNumber {
+        String(String),
+        Number(usize),
+    }
+
+    match StringOrNumber::deserialize(deserializer)? {
+        StringOrNumber::Number(n) => Ok(n),
+        StringOrNumber::String(s) => s.parse::<usize>().map_err(serde::de::Error::custom),
     }
 }

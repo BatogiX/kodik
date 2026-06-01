@@ -5,10 +5,14 @@ use reqwest::{
 use serde::{Serialize, de::DeserializeOwned};
 use std::{fmt::Debug, future::Future, time::Duration};
 use tokio::time;
+use ua_generator::{
+    fastrand::{self, Rng},
+    ua,
+};
 
-use crate::{Error, ua};
+use crate::Error;
 
-pub trait POST {
+pub trait ClientExt {
     /// Posts data to the given URL and deserializes the response as JSON.
     ///
     /// # Errors
@@ -45,9 +49,7 @@ pub trait POST {
     fn post_json_as_text<J>(&self, url: &str, json: &J) -> impl Future<Output = Result<String, Error>> + Send
     where
         J: Serialize + Sync + ?Sized;
-}
 
-pub trait GET {
     /// Fetches data from the given URL and returns the response body as a string.
     ///
     /// # Errors
@@ -70,9 +72,7 @@ pub trait GET {
         &self,
         url: &str,
     ) -> impl Future<Output = Result<T, crate::Error>> + Send;
-}
 
-pub trait PATCH {
     fn patch_json_as_json<T, J>(&self, url: &str, json: &J) -> impl Future<Output = Result<T, Error>> + Send
     where
         T: DeserializeOwned + Debug,
@@ -83,7 +83,7 @@ pub trait PATCH {
         J: Serialize + Sync + ?Sized;
 }
 
-impl POST for Client {
+impl ClientExt for Client {
     async fn post_form_as_json<T, F>(&self, url: &str, form: &F) -> Result<T, crate::Error>
     where
         T: DeserializeOwned + Debug,
@@ -109,9 +109,7 @@ impl POST for Client {
         log::info!("POST to {url}...");
         execute_text(self.post(url).json(json)).await
     }
-}
 
-impl GET for Client {
     async fn fetch_as_text(&self, url: &str) -> Result<String, crate::Error> {
         log::info!("GET to {url}...");
         execute_text(self.get(url)).await
@@ -121,9 +119,7 @@ impl GET for Client {
         log::info!("GET to {url}...");
         execute_json(self.get(url)).await
     }
-}
 
-impl PATCH for Client {
     async fn patch_json_as_json<T, J>(&self, url: &str, json: &J) -> Result<T, Error>
     where
         T: DeserializeOwned + Debug,
@@ -157,7 +153,7 @@ impl PATCH for Client {
 fn build_headers() -> HeaderMap {
     let mut headers = HeaderMap::with_capacity(7);
 
-    headers.insert(USER_AGENT, HeaderValue::from_static(ua::random_user_agent()));
+    headers.insert(USER_AGENT, HeaderValue::from_static(random_user_agent()));
     headers.insert(ACCEPT_LANGUAGE, HeaderValue::from_static("en-US,en;q=0.9"));
     headers.insert(HeaderName::from_static("dnt"), HeaderValue::from_static("1"));
     headers.insert(HeaderName::from_static("sec-gpc"), HeaderValue::from_static("1"));
@@ -207,7 +203,11 @@ async fn execute(builder: RequestBuilder) -> Result<Response, crate::Error> {
     log::trace!("builder: {builder:#?}");
 
     for attempt in 1..=MAX_ATTEMPTS {
-        let resp = builder.try_clone().expect("cannot clone builder").send().await?;
+        let Some(builder) = builder.try_clone() else {
+            return Err(crate::Error::NotFound("cannot clone request builder".to_owned()));
+        };
+
+        let resp = builder.send().await?;
 
         if resp.status() == StatusCode::TOO_MANY_REQUESTS {
             let wait = Duration::from_secs((2_u64.pow(u32::from(attempt))).min(60));
@@ -222,4 +222,33 @@ async fn execute(builder: RequestBuilder) -> Result<Response, crate::Error> {
 
     let resp = builder.send().await?;
     Ok(resp)
+}
+
+#[must_use]
+pub fn random_user_agent() -> &'static str {
+    log::debug!("Spoofing user agent...");
+
+    let agents = ua::all_static_agents();
+    let index = fastrand::usize(..agents.len());
+    let ua = agents
+        .get(index)
+        .copied()
+        .unwrap_or_else(|| ua::spoof_random_agent(&mut Rng::new()));
+
+    log::trace!("Spoofed user agent: {ua}");
+
+    ua
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn random_agent_is_not_always_same() {
+        let a1 = random_user_agent();
+        let a2 = random_user_agent();
+        assert_ne!(a1, a2);
+    }
 }

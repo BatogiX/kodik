@@ -1126,6 +1126,7 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
+ "thiserror",
  "tokio",
 ]
 
@@ -1139,6 +1140,7 @@ dependencies = [
  "futures",
  "kodik-parser",
  "kodik-shiki",
+ "kodik-utils",
  "log",
  "reqwest",
  "serde",

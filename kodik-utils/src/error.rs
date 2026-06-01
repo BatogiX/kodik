@@ -19,25 +19,21 @@ pub enum Error {
     #[error(transparent)]
     FromUtf8(#[from] string::FromUtf8Error),
 
-    /// Regex matching error.
-    #[error("{0}")]
-    RegexMatch(String),
-
-    /// Link cannot be decoded error.
-    #[error("link cannot be decoded {0}")]
-    LinkCannotBeDecoded(String),
-
     /// Invaliad header value
     #[error(transparent)]
     InvalidHeaderValue(#[from] header::InvalidHeaderValue),
-
-    /// Not found error.
-    #[error("{0}")]
-    NotFound(String),
 
     #[error(transparent)]
     Regex(#[from] lazy_regex::regex::Error),
 
     #[error(transparent)]
     SerdeYaml(#[from] serde_saphyr::Error),
+
+    /// Regex matching error.
+    #[error("{0}")]
+    RegexMatch(String),
+
+    /// Not found error.
+    #[error("{0}")]
+    NotFound(String),
 }

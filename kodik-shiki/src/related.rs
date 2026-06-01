@@ -1,4 +1,4 @@
-use kodik_utils::{Client, Error, GET as _};
+use kodik_utils::{Client, ClientExt as _, Error};
 use serde::Deserialize;
 use tokio::sync::OnceCell;
 

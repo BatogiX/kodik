@@ -2,13 +2,16 @@ use crate::config::Config;
 use crate::config::RelatedMode;
 use anyhow::Context;
 use anyhow::Result;
+use kodik_parser::TranslationType;
 use kodik_shiki::ShikiApiAnimes;
-use kodik_shiki::TranslationType;
 use reqwest::cookie::CookieStore;
 use reqwest::{Client, Url, cookie::Jar};
 
 pub async fn resolve_shiki(client: &Client, url: &Url, config: &Config, jar: &Jar) -> Result<Vec<String>> {
-    let shikimori_id = kodik_shiki::extract_id(url.as_str())?.parse().unwrap();
+    let shikimori_id = kodik_utils::extract_anime_id(url.as_str())?
+        .parse()
+        .with_context(|| format!("bad shikimori id in {url}"))?;
+
     let has_cookies = jar.cookies(url).is_some();
 
     if config.cookies.is_some() && !has_cookies {
@@ -16,7 +19,7 @@ pub async fn resolve_shiki(client: &Client, url: &Url, config: &Config, jar: &Ja
     }
 
     let shiki_api_animes = if has_cookies || config.related_mode.is_some() {
-        Some(kodik_shiki::fetch_shiki_api_animes(client, url.as_str()).await?)
+        Some(ShikiApiAnimes::fetch(client, url.as_str()).await?)
     } else {
         None
     };
@@ -61,7 +64,7 @@ async fn shiki_helper(
     shikimori_id: usize,
     shiki_api_animes: Option<&ShikiApiAnimes>,
 ) -> Result<Vec<String>> {
-    let kodik_api_resp = kodik_shiki::fetch_kodik_videos(client, shikimori_id).await?;
+    let kodik_api_resp = kodik_parser::fetch_shiki_kodik_videos(client, shikimori_id).await?;
 
     let search_result = kodik_api_resp
         .find_result(

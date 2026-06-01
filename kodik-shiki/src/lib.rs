@@ -1,19 +1,14 @@
-// #[cfg(test)]
-// #[allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing)]
-// mod tests;
-
-mod anime;
+mod api_v1;
+mod api_v2;
 mod error;
-mod models;
-pub(crate) mod parser;
+mod graphql;
 mod related;
-pub(crate) mod scraper;
+mod shared;
 
-pub use anime::{fetch_shiki_api_animes, fetch_user_rate};
+pub use api_v1::{ShikiApiAnimes, ShikiApiUsersWhoami};
+pub use api_v2::{ShikiApiUserRates, UserRatesTargetType};
+pub use error::{Error, Result};
+pub use graphql::Related;
 pub use related::fetch_not_anime_ids;
-pub use scraper::{VideoResult, fetch_kodik_videos};
-
-pub use error::Error;
-pub(crate) use error::Result;
-pub use models::*;
-pub use parser::extract_id;
+pub(crate) use shared::deserialize_usize_from_string_or_number;
+pub use shared::{AnimeKind, AnimeStatus, UserRate, UserRateStatus};

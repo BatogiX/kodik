@@ -1,10 +1,9 @@
 use std::collections::HashSet;
 
-use crate::{AnimeKind, Result, UserRate, models::shared::AnimeStatus};
-use kodik_utils::{Client, POST as _};
+use crate::{AnimeKind, AnimeStatus, UserRate, deserialize_usize_from_string_or_number};
+use kodik_utils::{Client, ClientExt as _};
 use serde::{Deserialize, Serialize};
 const LIMIT: usize = 50;
-use crate::models::shared::deserialize_usize_from_string_or_number;
 
 #[derive(Debug, Serialize)]
 pub struct GraphQLRequest<V> {
@@ -44,12 +43,14 @@ pub struct Related {
 }
 
 impl Related {
+    /// # Errors
+    /// Returns an error if the GraphQL request fails or the response cannot be deserialized.
     pub async fn fetch_by_franchise(
         client: &Client,
         franchise: &str,
         domain: &str,
         not_anime_ids: &[usize],
-    ) -> Result<Self> {
+    ) -> crate::Result<Self> {
         const ANIMES_BY_FRANCHISE_QUERY: &str = r#"
     query($franchise: String!, $page: PositiveInt!, $limit: PositiveInt!, $excludeIds: String!) {
       animes(franchise: $franchise, page: $page, limit: $limit, excludeIds: $excludeIds, order: aired_on, status: "!anons") {

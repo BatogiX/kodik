@@ -1,7 +1,7 @@
 use crate::KODIK_STATE;
 use crate::decoder;
 use crate::scraper::Response;
-use kodik_utils::{Client, Error, GET, POST};
+use kodik_utils::{Client, ClientExt as _};
 use serde::Serialize;
 
 #[derive(Debug)]
@@ -61,7 +61,7 @@ impl Links {
 /// println!("360p link: {}", kodik_response.p360);
 /// # }
 /// ```
-pub async fn parse(client: &Client, url: &str) -> Result<Links, Error> {
+pub async fn parse(client: &Client, url: &str) -> crate::Result<Links> {
     let domain = kodik_utils::extract_domain(url)?;
     let mut body = String::new();
 
@@ -146,7 +146,7 @@ impl<'a> VideoInfo<'a> {
     /// # Errors
     ///
     /// Returns `KodikError::Regex` if any of the required video fields (type, hash, id) are not found in the response text.
-    pub(crate) fn from_body(body: &'_ str) -> Result<VideoInfo<'_>, Error> {
+    pub(crate) fn from_body(body: &'_ str) -> crate::Result<VideoInfo<'_>> {
         let from_body_re = lazy_regex::regex!(r"\.(?P<field>type|hash|id) = '(?P<value>.*?)';");
 
         log::debug!("Extracting video info from body...");
@@ -160,21 +160,21 @@ impl<'a> VideoInfo<'a> {
                 "type" => {
                     r#type = Some(
                         caps.name("value")
-                            .ok_or(Error::RegexMatch("videoInfo.type value not found".to_owned()))?
+                            .ok_or_else(|| kodik_utils::Error::RegexMatch("videoInfo.type value not found".to_owned()))?
                             .as_str(),
                     );
                 }
                 "hash" => {
                     hash = Some(
                         caps.name("value")
-                            .ok_or(Error::RegexMatch("videoInfo.hash value not found".to_owned()))?
+                            .ok_or_else(|| kodik_utils::Error::RegexMatch("videoInfo.hash value not found".to_owned()))?
                             .as_str(),
                     );
                 }
                 "id" => {
                     id = Some(
                         caps.name("value")
-                            .ok_or(Error::RegexMatch("videoInfo.id value not found".to_owned()))?
+                            .ok_or_else(|| kodik_utils::Error::RegexMatch("videoInfo.id value not found".to_owned()))?
                             .as_str(),
                     );
                 }
@@ -183,9 +183,9 @@ impl<'a> VideoInfo<'a> {
         }
 
         let video_info = VideoInfo::new(
-            r#type.ok_or(Error::RegexMatch("videoInfo.type not found".to_owned()))?,
-            hash.ok_or(Error::RegexMatch("videoInfo.hash not found".to_owned()))?,
-            id.ok_or(Error::RegexMatch("videoInfo.id not found".to_owned()))?,
+            r#type.ok_or_else(|| kodik_utils::Error::RegexMatch("videoInfo.type not found".to_owned()))?,
+            hash.ok_or_else(|| kodik_utils::Error::RegexMatch("videoInfo.hash not found".to_owned()))?,
+            id.ok_or_else(|| kodik_utils::Error::RegexMatch("videoInfo.id not found".to_owned()))?,
         );
 
         log::trace!("Extracted video info: {video_info:#?}");
@@ -197,26 +197,26 @@ impl<'a> VideoInfo<'a> {
     /// # Errors
     ///
     /// Returns `KodikError::Regex` if the video information (type, hash, id) is not found in the URL.
-    pub(crate) fn from_url(url: &'_ str) -> Result<VideoInfo<'_>, Error> {
+    pub(crate) fn from_url(url: &'_ str) -> crate::Result<VideoInfo<'_>> {
         let from_url_re = lazy_regex::regex!(r"/([^/]+)/(\d+)/([a-z0-9]+)");
 
         log::debug!("Extracting video info from url...");
 
         let caps = from_url_re
             .captures(url)
-            .ok_or(Error::RegexMatch(format!("videoInfo not found in '{url}'")))?;
+            .ok_or_else(|| kodik_utils::Error::RegexMatch(format!("videoInfo not found in '{url}'")))?;
 
         let r#type = caps
             .get(1)
-            .ok_or(Error::RegexMatch(format!("videoInfo.type not found in '{url}'")))?
+            .ok_or_else(|| kodik_utils::Error::RegexMatch(format!("videoInfo.type not found in '{url}'")))?
             .as_str();
         let id = caps
             .get(2)
-            .ok_or(Error::RegexMatch(format!("videoInfo.id not found in '{url}'")))?
+            .ok_or_else(|| kodik_utils::Error::RegexMatch(format!("videoInfo.id not found in '{url}'")))?
             .as_str();
         let hash = caps
             .get(3)
-            .ok_or(Error::RegexMatch(format!("videoInfo.hash not found in '{url}'")))?
+            .ok_or_else(|| kodik_utils::Error::RegexMatch(format!("videoInfo.hash not found in '{url}'")))?
             .as_str();
 
         Ok(VideoInfo::new(r#type, hash, id))
@@ -232,7 +232,7 @@ impl<'a> VideoInfo<'a> {
 /// # Panics
 ///
 /// Panics if the regex capture group is not found, which should not happen if the regex is correct.
-pub fn extract_player_url(domain: &str, body: &str) -> Result<String, Error> {
+pub fn extract_player_url(domain: &str, body: &str) -> crate::Result<String> {
     let player_path_re =
         lazy_regex::regex!(r#"<script\s*type="text/javascript"\s*src="/(assets/js/app\.player_single[^"]*)""#);
 
@@ -240,9 +240,9 @@ pub fn extract_player_url(domain: &str, body: &str) -> Result<String, Error> {
 
     let player_path = player_path_re
         .captures(body)
-        .ok_or(Error::RegexMatch("there is no player path in response".to_owned()))?
+        .ok_or_else(|| kodik_utils::Error::RegexMatch("there is no player path in response".to_owned()))?
         .get(1)
-        .ok_or(Error::RegexMatch("player path capture group not found".to_owned()))?
+        .ok_or_else(|| kodik_utils::Error::RegexMatch("player path capture group not found".to_owned()))?
         .as_str();
 
     log::trace!("Extracted player url: {player_path}");
@@ -258,18 +258,16 @@ pub fn extract_player_url(domain: &str, body: &str) -> Result<String, Error> {
 /// # Panics
 ///
 /// Panics if the regex capture group is not found, which should not happen if the regex is correct.
-pub fn extract_endpoint(body: &str) -> Result<String, Error> {
+pub fn extract_endpoint(body: &str) -> crate::Result<String> {
     let endpoint_re = lazy_regex::regex!(r#"\$\.ajax\([^>]+,url:\s*atob\(["\']([\w=]+)["\']\)"#);
 
     log::debug!("Extracting endpoint...");
 
     let encoded_endpoint = endpoint_re
         .captures(body)
-        .ok_or(Error::RegexMatch(
-            "there is no api endpoint in player response".to_owned(),
-        ))?
+        .ok_or_else(|| kodik_utils::Error::RegexMatch("there is no api endpoint in player response".to_owned()))?
         .get(1)
-        .ok_or(Error::RegexMatch("api endpoint capture group not found".to_owned()))?
+        .ok_or_else(|| kodik_utils::Error::RegexMatch("api endpoint capture group not found".to_owned()))?
         .as_str();
 
     let endpoint = decoder::decode_base64(encoded_endpoint)?;
@@ -349,6 +347,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(clippy::print_stderr)]
     #[ignore = "requires network access"]
     async fn async_parse() {
         let client = Client::new();

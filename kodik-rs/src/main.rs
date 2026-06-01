@@ -6,6 +6,7 @@ use std::{
 };
 
 #[tokio::main]
+#[allow(clippy::print_stderr)]
 async fn main() -> ExitCode {
     let mut stdin = String::new();
 

@@ -1,4 +1,5 @@
 //! Error types for the Kodik-Shiki library.
+
 use std::num::ParseIntError;
 use thiserror::Error as ThisError;
 
@@ -17,7 +18,4 @@ pub enum Error {
         #[source]
         source: ParseIntError,
     },
-
-    #[error("invalid `translation_type`: `{0}`, expected voice or subtitles")]
-    InvalidTranslationType(String),
 }

@@ -1,10 +1,8 @@
+mod client_ext;
 mod error;
 mod re;
-mod scraper;
-mod ua;
 
+pub use client_ext::ClientExt;
 pub use error::Error;
-pub use re::extract_domain;
+pub use re::{extract_anime_id, extract_domain};
 pub use reqwest::Client;
-pub use scraper::{GET, PATCH, POST};
-pub use ua::random_user_agent;
