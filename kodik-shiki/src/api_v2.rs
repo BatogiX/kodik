@@ -23,6 +23,9 @@ impl ShikiApiUserRates {
         }
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the API request fails or the response cannot be deserialized.
     pub async fn patch(&self, client: &Client, host: &str, user_rate_id: usize) -> crate::Result<UserRate> {
         let user_rate = client
             .patch_json_as_json(&format!("https://{host}/api/v2/user_rates/{user_rate_id}"), self)
@@ -31,6 +34,9 @@ impl ShikiApiUserRates {
         Ok(user_rate)
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the API request fails or the response cannot be deserialized.
     pub async fn post(&self, client: &Client, host: &str) -> crate::Result<UserRate> {
         let user_rate = client
             .post_json_as_json(&format!("https://{host}/api/v2/user_rates"), self)

@@ -14,6 +14,16 @@ pub struct KodikApiResponse {
 }
 
 impl KodikApiResponse {
+    /// Returns a `KodikApiResponse` for the given Shikimori anime ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `KodikError` if the HTTP request fails or the response cannot be deserialized.
+    pub async fn fetch_shiki(client: &Client, shikimori_id: usize) -> crate::Result<Self> {
+        let query = format!("shikimori_id={shikimori_id}");
+        Self::fetch(client, &query).await
+    }
+
     /// Finds a result matching the given translation title or type.
     ///
     /// # Errors
@@ -52,6 +62,15 @@ impl KodikApiResponse {
         log::info!("found first translation with title '{}'", result.translation.title);
 
         Ok(result)
+    }
+
+    async fn fetch(client: &Client, query: &str) -> crate::Result<Self> {
+        const TOKEN: &str = env!("KODIK_TOKEN");
+
+        let url = format!("https://kodik-api.com/search?token={TOKEN}&{query}&with_seasons=true&with_episodes=true");
+        let kodik_api_response = client.fetch_as_json(&url).await?;
+
+        Ok(kodik_api_response)
     }
 }
 
@@ -102,18 +121,4 @@ impl FromStr for TranslationType {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Season {
     pub episodes: BTreeMap<usize, String>,
-}
-
-async fn fetch_kodik_videos(client: &Client, query: &str) -> crate::Result<KodikApiResponse> {
-    const TOKEN: &str = env!("KODIK_TOKEN");
-
-    let url = format!("https://kodik-api.com/search?token={TOKEN}&{query}&with_seasons=true&with_episodes=true");
-    let kodik_api_response: KodikApiResponse = client.fetch_as_json(&url).await?;
-
-    Ok(kodik_api_response)
-}
-
-pub async fn fetch_shiki_kodik_videos(client: &Client, shikimori_id: usize) -> crate::Result<KodikApiResponse> {
-    let query = format!("shikimori_id={shikimori_id}");
-    fetch_kodik_videos(client, &query).await
 }

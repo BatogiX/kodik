@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::config::RelatedMode;
 use anyhow::Context;
 use anyhow::Result;
+use kodik_parser::KodikApiResponse;
 use kodik_parser::TranslationType;
 use kodik_shiki::ShikiApiAnimes;
 use reqwest::cookie::CookieStore;
@@ -64,7 +65,7 @@ async fn shiki_helper(
     shikimori_id: usize,
     shiki_api_animes: Option<&ShikiApiAnimes>,
 ) -> Result<Vec<String>> {
-    let kodik_api_resp = kodik_parser::fetch_shiki_kodik_videos(client, shikimori_id).await?;
+    let kodik_api_resp = KodikApiResponse::fetch_shiki(client, shikimori_id).await?;
 
     let search_result = kodik_api_resp
         .find_result(

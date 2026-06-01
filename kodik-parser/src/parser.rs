@@ -12,7 +12,7 @@ pub struct Links {
 }
 
 impl Links {
-    pub const fn new(p720: String, p480: String, p360: String) -> Self {
+    const fn new(p720: String, p480: String, p360: String) -> Self {
         Self { p720, p480, p360 }
     }
 }
@@ -85,9 +85,9 @@ pub async fn parse(client: &Client, url: &str) -> crate::Result<Links> {
             {
                 kodik_response.decode_links()?;
                 return Ok(Links::new(
-                    kodik_response.links.quality_720.remove(0).src,
-                    kodik_response.links.quality_480.remove(0).src,
-                    kodik_response.links.quality_360.remove(0).src,
+                    kodik_response.links.p720.remove(0).src,
+                    kodik_response.links.p480.remove(0).src,
+                    kodik_response.links.p360.remove(0).src,
                 ));
             }
 

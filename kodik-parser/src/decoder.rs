@@ -1,4 +1,5 @@
-use crate::{KODIK_STATE, Link, scraper::Response};
+use crate::scraper::Link;
+use crate::{KODIK_STATE, scraper::Response};
 use base64::{Engine as _, engine::general_purpose};
 
 const MIN_SHIFT: u8 = 0;
@@ -13,21 +14,21 @@ impl Response {
     pub(crate) fn decode_links(&mut self) -> crate::Result<()> {
         log::debug!("Decoding links...");
 
-        for link in &mut self.links.quality_360 {
+        for link in &mut self.links.p360 {
             link.decode_src()?;
             if let Some(index) = link.src.rfind(".mp4") {
                 link.src.replace_range(index - 3..index, "360");
             }
         }
 
-        for link in &mut self.links.quality_480 {
+        for link in &mut self.links.p480 {
             link.decode_src()?;
             if let Some(index) = link.src.rfind(".mp4") {
                 link.src.replace_range(index - 3..index, "480");
             }
         }
 
-        for link in &mut self.links.quality_720 {
+        for link in &mut self.links.p720 {
             link.decode_src()?;
             if let Some(index) = link.src.rfind(".mp4") {
                 link.src.replace_range(index - 3..index, "720");
@@ -107,9 +108,8 @@ pub fn decode_base64(input: &str) -> crate::Result<String> {
 #[cfg(test)]
 #[allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing)]
 mod tests {
-    use crate::Links;
-
     use super::*;
+    use crate::scraper::{Link, Links};
 
     #[test]
     fn b64_test() {
@@ -152,19 +152,19 @@ mod tests {
     fn decoding_links() {
         let mut kodik_response = Response {
         links: Links {
-            quality_360: vec![
+            p360: vec![
                 Link {
                     src: "iPZ0kPU6Tg9eUBUck29aj2ZrHO4cG29bT3UdjA9pANQeG0pVVsf5WExqZhsfEsU1muQgmPHiZ05zGus1iuQgUPHsEM5aG25El2RPWEpiAM12EDlRU01FAFlHist0EsZHUNxxULJVD0shBNlRms9MH3ZVms0fBCZrUNtyBBRVms13T2MhVrMhHLJrU2C4GhpuGuYgVLG4UrCgHLHqGrprGuU2VhtuHLUhULQhUhU2VuZuVOC1VONsHEM2HuC0WEU1WLG6UrIgVrI1ULMeUq8hVrIcjFI0WupakhxbGE5xHuDhlK5bU3C4".to_owned(),
                     r#type: "application/x-mpegURL".to_owned()
                 },
             ],
-            quality_480: vec![
+            p480: vec![
                 Link {
                     src: "iPZ0kPU6Tg9eUBUck29aj2ZrHO4cG29bT3UdjA9pANQeG0pVVsf5WExqZhsfEsU1muQgmPHiZ05zGus1iuQgUPHsEM5aG25El2RPWEpiAM12EDlRU01FAFlHist0EsZHUNxxULJVD0shBNlRms9MH3ZVms0fBCZrUNtyBBRVms13T2MhVrMhHLJrU2C4GhpuGuYgVLG4UrCgHLHqGrprGuU2VhtuHLUhULQhUhU2VuZuVOC1VONsHEM2HuC0WEU1WLG6UrIgVrI1ULMeUq80WLIcjFI0WupakhxbGE5xHuDhlK5bU3C4".to_owned(),
                     r#type: "application/x-mpegURL".to_owned()
                 },
             ],
-            quality_720: vec![
+            p720: vec![
                 Link {
                     src: "iPZ0kPU6Tg9eUBQck29aj2ZrHO4cG29bT3UdjA9pANQeG0pVVsf5WExqZhsfEsU1muQgmPHiZ05zGus1iuQgUPHsEM5aG25El2RPWEpiAM12EDlRU01FAFlHist0EsZHUNxxULJVD0shBNlRms9MH3ZVms0fBCZrUNtyBBRVms13T2MhVrMhHLJrU2C4GhpuGuYgVLG4UrCgHLHqGrprGuU2VhtuHLUhULQhUhU2VuZuVOC1VONsHEM2HuC0WEU1WLG6UrIgVrI1ULMeUq83UrIcjFI0WupakhxbGE5xHuDhlK5bU3C4".to_owned(),
                     r#type: "application/x-mpegURL".to_owned()
@@ -177,15 +177,15 @@ mod tests {
 
         assert_eq!(
             "https://p13.solodcdn.com/s/m/aHR0cHM6Ly9jbG91ZC5zb2xvZGNkbi5jb20vdXNlcnVwbG9hZHMvYWI3MWIwYjItZDY0Zi00MWI3LWIzODgtMzM1MDc0YjM2MzMw/a3613d0c3e8c8fbd2468252d6bb8cbc679fd330233366df4e54adea6fe49c586:2026050102/360.mp4:hls:manifest.m3u8",
-            kodik_response.links.quality_360[0].src
+            kodik_response.links.p360[0].src
         );
         assert_eq!(
             "https://p13.solodcdn.com/s/m/aHR0cHM6Ly9jbG91ZC5zb2xvZGNkbi5jb20vdXNlcnVwbG9hZHMvYWI3MWIwYjItZDY0Zi00MWI3LWIzODgtMzM1MDc0YjM2MzMw/a3613d0c3e8c8fbd2468252d6bb8cbc679fd330233366df4e54adea6fe49c586:2026050102/480.mp4:hls:manifest.m3u8",
-            kodik_response.links.quality_480[0].src
+            kodik_response.links.p480[0].src
         );
         assert_eq!(
             "https://p12.solodcdn.com/s/m/aHR0cHM6Ly9jbG91ZC5zb2xvZGNkbi5jb20vdXNlcnVwbG9hZHMvYWI3MWIwYjItZDY0Zi00MWI3LWIzODgtMzM1MDc0YjM2MzMw/a3613d0c3e8c8fbd2468252d6bb8cbc679fd330233366df4e54adea6fe49c586:2026050102/720.mp4:hls:manifest.m3u8",
-            kodik_response.links.quality_720[0].src
+            kodik_response.links.p720[0].src
         );
     }
 }

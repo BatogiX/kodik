@@ -43,6 +43,9 @@ pub struct ShikiApiUsersWhoami {
 }
 
 impl ShikiApiUsersWhoami {
+    /// # Errors
+    ///
+    /// Returns an error if the API request fails or the response cannot be deserialized.
     pub async fn fetch(client: &Client, host: &str) -> crate::Result<Self> {
         let whoami = client
             .fetch_as_json(&format!("https://{host}/api/users/whoami"))

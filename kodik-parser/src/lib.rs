@@ -8,8 +8,7 @@ mod parser;
 mod scraper;
 mod state;
 
-pub use api::{KodikApiResponse, TranslationType, fetch_shiki_kodik_videos};
+pub use api::{KodikApiResponse, TranslationType};
 pub use error::{Error, Result};
-pub use parser::parse;
-pub use scraper::{Link, Links};
+pub use parser::{Links, parse};
 pub use state::KODIK_STATE;

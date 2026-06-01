@@ -12,13 +12,13 @@ pub struct Response {
 pub struct Links {
     /// Video links for 360p quality
     #[serde(rename = "360")]
-    pub quality_360: Vec<Link>,
+    pub p360: Vec<Link>,
     /// Video links for 480p quality
     #[serde(rename = "480")]
-    pub quality_480: Vec<Link>,
+    pub p480: Vec<Link>,
     /// Video links for 720p quality
     #[serde(rename = "720")]
-    pub quality_720: Vec<Link>,
+    pub p720: Vec<Link>,
 }
 
 #[derive(Debug, Deserialize)]
