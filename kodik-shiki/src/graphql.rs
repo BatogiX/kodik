@@ -84,7 +84,7 @@ impl Related {
             .collect::<Vec<_>>()
             .join(",");
 
-        let graphql_url = format!("https://{domain}/api/graphql");
+        let graphql_url = kodik_utils::api_url(domain, "/api/graphql");
         let mut json = GraphQLRequest {
             query: ANIMES_BY_FRANCHISE_QUERY,
             variables: FetchAnimesVars::new(franchise, &exclude_ids),

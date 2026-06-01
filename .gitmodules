@@ -1,3 +1,6 @@
 [submodule "kodik-mpv-plugin"]
 	path = kodik-mpv-plugin
 	url = https://github.com/BatogiX/kodik-mpv-plugin.git
+[submodule "kodik-rs"]
+	path = kodik-rs
+	url = https://github.com/BatogiX/kodik-rs.git

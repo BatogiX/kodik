@@ -1,16 +1,12 @@
-use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-};
-
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::{
     ArgAction, Parser, ValueEnum,
     builder::styling::{self, Styles},
 };
 use kodik_parser::TranslationType;
+use kodik_utils::load_netscape_cookies;
 use log::LevelFilter;
-use reqwest::{Url, cookie::Jar};
+use reqwest::Url;
 
 const STYLES: Styles = Styles::styled()
     .header(styling::AnsiColor::BrightGreen.on_default().bold())
@@ -71,48 +67,11 @@ impl Config {
         }
     }
 
-    pub fn load_cookies(&self) -> Result<Jar> {
-        let jar = Jar::default();
-
-        if let Some(cookies) = self.cookies.as_deref() {
-            let file = File::open(cookies)?;
-            let mut reader = BufReader::new(file);
-            let mut line = String::new();
-
-            while reader.read_line(&mut line)? > 0 {
-                let trimmed = line.trim();
-
-                if trimmed.starts_with('#') || trimmed.is_empty() {
-                    line.clear();
-                    continue;
-                }
-
-                let mut parts = trimmed.splitn(7, '\t');
-
-                let domain = parts.next().context("malformed cookie: missing domain")?;
-                let key = parts.nth(4).context("malformed cookie: missing name")?;
-                let value = parts.next().context("malformed cookie: missing value")?;
-
-                let mut cookie = String::with_capacity(key.len() + value.len() + domain.len() + 10);
-                cookie.push_str(key);
-                cookie.push('=');
-                cookie.push_str(value);
-                cookie.push_str("; Domain=");
-                cookie.push_str(domain);
-
-                let domain = domain.trim_start_matches('.');
-                let mut url_str = String::with_capacity(8 + domain.len());
-                url_str.push_str("https://");
-                url_str.push_str(domain);
-                let url = Url::parse(&url_str)?;
-
-                jar.add_cookie_str(&cookie, &url);
-
-                line.clear();
-            }
-        }
-
-        Ok(jar)
+    pub fn load_cookies(&self) -> Result<reqwest::cookie::Jar> {
+        Ok(match &self.cookies {
+            Some(path) => load_netscape_cookies(path)?,
+            None => reqwest::cookie::Jar::default(),
+        })
     }
 }
 

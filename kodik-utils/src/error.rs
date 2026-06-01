@@ -11,6 +11,10 @@ pub enum Error {
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
 
+    /// IO error.
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+
     /// Base64 decoding error.
     #[error(transparent)]
     Decode(#[from] base64::DecodeError),
