@@ -10,9 +10,9 @@ resolver = "3"
 
 [workspace.dependencies]
 # members
-kodik-parser = { version = "3", path = "kodik-parser" }
-kodik-shiki = { version = "0.1", path = "kodik-shiki" }
-kodik-utils = { version = "0.1", path = "kodik-utils" }
+kodik-parser = { version = "4", path = "kodik-parser" }
+kodik-shiki = { version = "0.2", path = "kodik-shiki" }
+kodik-utils = { version = "0.2", path = "kodik-utils" }
 
 # members deps
 ua_generator = "0.5"
