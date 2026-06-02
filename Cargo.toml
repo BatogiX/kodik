@@ -20,7 +20,7 @@ serde = "1.0"
 log = "0.4"
 tokio = "1.52"
 serde_json = "1.0"
-reqwest = "0.13"
+reqwest = { version = "0.13", features = ["cookies"] }
 base64 = "0.22"
 lazy-regex = "3.6"
 serde-saphyr = "0.0.27"
