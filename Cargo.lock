@@ -1098,7 +1098,7 @@ dependencies = [
 
 [[package]]
 name = "kodik-mpv-plugin"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "env_logger",
@@ -1118,7 +1118,7 @@ dependencies = [
 
 [[package]]
 name = "kodik-parser"
-version = "4.0.1"
+version = "4.0.2"
 dependencies = [
  "arc-swap",
  "base64",
@@ -1133,7 +1133,7 @@ dependencies = [
 
 [[package]]
 name = "kodik-rs"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -1151,7 +1151,7 @@ dependencies = [
 
 [[package]]
 name = "kodik-shiki"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "kodik-utils",
  "lazy-regex",
@@ -1165,7 +1165,7 @@ dependencies = [
 
 [[package]]
 name = "kodik-utils"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "base64",
  "lazy-regex",
