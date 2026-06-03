@@ -1113,11 +1113,12 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "webpki-root-certs",
 ]
 
 [[package]]
 name = "kodik-parser"
-version = "4.0.0"
+version = "4.0.1"
 dependencies = [
  "arc-swap",
  "base64",
@@ -1150,7 +1151,7 @@ dependencies = [
 
 [[package]]
 name = "kodik-shiki"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "kodik-utils",
  "lazy-regex",
@@ -1164,7 +1165,7 @@ dependencies = [
 
 [[package]]
 name = "kodik-utils"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "base64",
  "lazy-regex",
@@ -1290,9 +1291,9 @@ dependencies = [
 
 [[package]]
 name = "mpv-client-cross"
-version = "1.2.2"
+version = "1.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53c169509133e1f437f3c5b00634fd626e42e9b6c600e15b5a4a5e49da4752e6"
+checksum = "c37a0808c9a8de13698f02c8307f3522f2a62b2ecb6d489997bd6256b024897b"
 dependencies = [
  "libc",
  "mpv-client-cross-sys",
@@ -1300,9 +1301,9 @@ dependencies = [
 
 [[package]]
 name = "mpv-client-cross-sys"
-version = "1.1.2"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3be25fd3e57895647a888a95606fc816c02c7f45544cef75e5cff89c3a213d34"
+checksum = "bb1d0b1172dbdf0855b1b17b5bacf66f6017ab1e6bb679574dcfb24e5a6ed7c7"
 dependencies = [
  "bindgen",
  "prettyplease",

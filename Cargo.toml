@@ -30,8 +30,10 @@ dirs = "6.0"
 thiserror = "2.0"
 anyhow = "1.0"
 mpv-client = { version = "1.2", package = "mpv-client-cross" }
+# mpv-client = { path = "../mpv-client/mpv-client", package = "mpv-client-cross" }
 futures = "0.3"
 env_logger = "0.11"
+webpki-root-certs = "1.0.7"
 
 [workspace.lints.rust]
 unsafe_code = "deny"
@@ -65,7 +67,7 @@ panic = "abort"
 
 [workspace.package]
 edition = "2024"
-license = "MIT OR Apache-2.0"
+license-file = "LICENSE"
 repository = "https://github.com/BatogiX/kodik"
 homepage = "https://github.com/BatogiX/kodik"
 documentation = "https://docs.rs/kodik-parser"
